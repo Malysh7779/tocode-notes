@@ -1,71 +1,68 @@
 <template>
-  <carousel :settings="settings" :breakpoints="breakpoints">
-    <slide class="card__wrapper" v-for="item in items" :key="item.id">
-      <Card
-        :name="`${item.lvl} lvl`"
-        :title="item.title"
-        :imgUrl="item.img"
-        :link="`/${item.alias}`"
-        :id="item.id"
-      >
-        <template v-slot:body>
-          {{ item.descr }}
-        </template>
-        <!-- <template v-slot:footer>
-          <div class="card-stats">
-            <div
-              v-for="(stat, index) in item.info"
-              :key="index"
-              class="one-third"
-            >
-              <div class="stat-value">{{ stat.value }}</div>
-              <div class="stat">{{ stat.title }}</div>
-            </div>
-          </div>
-        </template> -->
-      </Card>
-    </slide>
-
-    <!-- addons -->
-    <template #addons>
-      <navigation />
-    </template>
-  </carousel>
+  <Form @onSubmit="handleSubmit"/>
+  <List @onRemove="handleRemove" :items="notes"/>
 </template>
 
 <script>
-import items from '@/seeders/items.js'
-
-import Card from '@/components/UI/Card'
-
-import 'vue3-carousel/dist/carousel.css'
-import { Carousel, Slide, Navigation } from 'vue3-carousel'
+import Form from '@/components/Notes/Form.vue'
+import List from '@/components/Notes/List.vue'
 
 export default {
   components: {
-    Card,
-    Carousel,
-    Slide,
-    Navigation
+    Form,
+    List
   },
   data() {
     return {
-      items: items,
-
-      // corousel
-      settings: {
-        itemsToShow: 2,
-        wrapAround: false,
-        snapAlign: 'center'
-      },
-      breakpoints: {
-        300: {
-          itemsToShow: 1
+      notes: [
+        {
+          title: 'Learn Vue 3',
+          tags: ['work']
         },
-        700: {
-          itemsToShow: 2
+        {
+          title: 'Finish course',
+          tags: ['work', 'home']
+        },
+        {
+          title: 'hello',
+          tags: []
         }
+      ]
+    }
+  },
+  mounted() {
+    this.getNotes()
+  },
+  watch: {
+    notes: {
+      handler(updatedList) {
+        localStorage.setItem('notes', JSON.stringify(updatedList))
+      },
+      deep: true
+    }
+  },
+  methods: {
+    getNotes() {
+      const localNotes = localStorage.getItem("notes")
+      if (localNotes) {
+        this.notes = JSON.parse(localNotes)
       }
+    },
+    handleSubmit(comp) {
+      let activeTags = []
+      comp.tags.forEach(e => {
+        if (e.isActive) {
+          activeTags.push(e.title)
+        }
+      })
+      const note = {
+        title: comp.value,
+        tags: activeTags
+      }
+      this.notes.push(note)
+    },
+    handleRemove(index) {
+      this.notes.splice(index, 1)
     }
   }
 }
